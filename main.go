@@ -2,11 +2,14 @@ package main
 
 import (
 	"io"
+	"log"
 	"net"
 	"strings"
 	"sync"
 	"time"
 )
+
+var lg log.Logger
 
 func main() {
 	counter := map[string]int32{}
@@ -44,6 +47,7 @@ func main() {
 			continue
 		}
 		conn.SetNoDelay(true)
+		lg.Printf("Incoming connection from %s", conn.RemoteAddr().String())
 
 		go func() {
 			addr := conn.RemoteAddr()
@@ -55,6 +59,7 @@ func main() {
 			if !ok {
 				v = 0
 			}
+			lg.Printf("Current count for %s is %v", addr.String(), v)
 			v++
 			if v > 1000 {
 				allowed = false
@@ -78,6 +83,8 @@ func forwardConnection(src net.Conn) {
 	}
 
 	done := make(chan struct{})
+
+	lg.Printf("starting relay from %s to %s", src.RemoteAddr().String(), dst.RemoteAddr().String())
 
 	go func() {
 		defer src.Close()
