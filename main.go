@@ -4,16 +4,20 @@ import (
 	"io"
 	"log"
 	"net"
+	"os"
 	"strings"
 	"sync"
 	"time"
 )
 
-var lg log.Logger
+var lg *log.Logger
 
 func main() {
 	counter := map[string]int32{}
 	syncer := sync.Mutex{}
+	lg = log.New(os.Stdout, "", log.Ltime)
+
+	lg.Printf("sfsadja %s", "sda")
 
 	server, err := net.ListenTCP("tcp", &net.TCPAddr{
 		Port: 6543,
