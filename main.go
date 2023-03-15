@@ -20,7 +20,7 @@ func main() {
 	flag.StringVar(&lim, "lim", "200", "count of conns per 5 sec")
 	flag.Parse()
 
-	threshold = 1000
+	threshold = 500
 	limInt, err := strconv.Atoi(lim)
 	if err != nil {
 		panic(err)
