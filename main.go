@@ -28,7 +28,7 @@ func main() {
 	syncer := sync.Mutex{}
 	lg = log.New(os.Stdout, "", log.Ltime)
 
-	lg.Println("Starting service with lim %v", limInt)
+	lg.Printf("starting service with lim %v", limInt)
 
 	server, err := net.ListenTCP("tcp", &net.TCPAddr{
 		Port: 6543,
@@ -39,20 +39,22 @@ func main() {
 
 	go func() {
 		ticker := time.Tick(5 * time.Second)
-		select {
-		case <-ticker:
-			syncer.Lock()
-			for key, val := range counter {
-				val -= int32(limInt)
+		for {
+			select {
+			case <-ticker:
+				syncer.Lock()
+				for key, val := range counter {
+					val -= int32(limInt)
 
-				if val < 0 {
-					delete(counter, key)
-					continue
+					if val < 0 {
+						delete(counter, key)
+						continue
+					}
+
+					counter[key] = val
 				}
-
-				counter[key] = val
+				syncer.Unlock()
 			}
-			syncer.Unlock()
 		}
 	}()
 
@@ -74,7 +76,7 @@ func main() {
 			if !ok {
 				v = 0
 			}
-			lg.Printf("Current count for [%s] is [%v]", addr.String(), v)
+			lg.Printf("current count for [%s] is [%v]", addr.String(), v)
 			v++
 			if v > int32(limInt) {
 				allowed = false
@@ -85,7 +87,7 @@ func main() {
 			if allowed {
 				forwardConnection(conn)
 			}
-
+			lg.Printf("closing connection for [%s]", ip)
 			conn.Close()
 		}()
 	}
