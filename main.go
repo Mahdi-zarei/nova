@@ -69,16 +69,15 @@ func main() {
 		if err != nil {
 			continue
 		}
+		addr := conn.RemoteAddr()
+		ip := strings.Split(addr.String(), ":")[0]
 
-		if _, is := blackList[strings.Split(conn.RemoteAddr().String(), ":")[0]]; is {
+		if _, is := blackList[ip]; is {
 			conn.Close()
 			continue
 		}
 
 		go func() {
-			addr := conn.RemoteAddr()
-			ip := strings.Split(addr.String(), ":")[0]
-
 			lg.Printf("Incoming connection from [%s]", addr.String())
 			conn.SetNoDelay(true)
 
@@ -90,6 +89,7 @@ func main() {
 			}
 
 			if v > threshold {
+				lg.Printf("blacklisted %s", ip)
 				blackList[ip] = struct{}{}
 				allowed = false
 			} else {
