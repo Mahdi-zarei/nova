@@ -26,6 +26,8 @@ func main() {
 
 	counter := map[string]int32{}
 	syncer := sync.Mutex{}
+	totMu := sync.Mutex{}
+	totalCounter := 0
 	lg = log.New(os.Stdout, "", log.Ltime)
 
 	lg.Printf("starting service with lim %v", limInt)
@@ -76,7 +78,7 @@ func main() {
 			if !ok {
 				v = 0
 			}
-			lg.Printf("current count for [%s] is [%v]", addr.String(), v)
+			lg.Printf("current count for [%s] is [%v]", ip, v)
 			v++
 			if v > int32(limInt) {
 				allowed = false
@@ -85,19 +87,31 @@ func main() {
 			syncer.Unlock()
 
 			if allowed {
+				totMu.Lock()
+				totalCounter++
+				lg.Printf("total connection count: [%v]", totalCounter)
+				totMu.Unlock()
 				forwardConnection(conn)
 			}
 			lg.Printf("closing connection for [%s]", ip)
+			totMu.Lock()
+			totalCounter--
+			totMu.Unlock()
 			conn.Close()
 		}()
 	}
 }
 
-func forwardConnection(src net.Conn) {
-	dst, err := net.Dial("tcp", ":888")
+func forwardConnection(src *net.TCPConn) {
+	dst, err := net.DialTCP("tcp", nil, &net.TCPAddr{Port: 888})
 	if err != nil {
 		return
 	}
+
+	src.SetKeepAlive(true)
+	src.SetKeepAlivePeriod(5 * time.Second)
+
+	dst.SetNoDelay(true)
 
 	done := make(chan struct{})
 
