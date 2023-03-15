@@ -27,6 +27,7 @@ func main() {
 	}
 
 	counter := map[string]int32{}
+	blackList := map[string]struct{}{}
 	syncer := sync.Mutex{}
 	totMu := sync.Mutex{}
 	totalCounter := 0
@@ -48,9 +49,7 @@ func main() {
 			case <-ticker:
 				syncer.Lock()
 				for key, val := range counter {
-					if val > threshold {
-						continue
-					}
+
 					val -= int32(limInt)
 
 					if val < 0 {
@@ -70,12 +69,18 @@ func main() {
 		if err != nil {
 			continue
 		}
-		conn.SetNoDelay(true)
-		lg.Printf("Incoming connection from [%s]", conn.RemoteAddr().String())
+
+		if _, is := blackList[strings.Split(conn.RemoteAddr().String(), ":")[0]]; is {
+			conn.Close()
+			continue
+		}
 
 		go func() {
 			addr := conn.RemoteAddr()
 			ip := strings.Split(addr.String(), ":")[0]
+
+			lg.Printf("Incoming connection from [%s]", addr.String())
+			conn.SetNoDelay(true)
 
 			allowed := true
 			syncer.Lock()
@@ -85,6 +90,7 @@ func main() {
 			}
 
 			if v > threshold {
+				blackList[ip] = struct{}{}
 				allowed = false
 			} else {
 				lg.Printf("current count for [%s] is [%v]", ip, v)
