@@ -14,14 +14,21 @@ import (
 
 var lg *log.Logger
 var lim string
+var portString string
 var threshold int32
 
 func main() {
 	flag.StringVar(&lim, "lim", "200", "count of conns per 5 sec")
+	flag.StringVar(&portString, "port", "6543", "port")
 	flag.Parse()
 
 	threshold = 500
 	limInt, err := strconv.Atoi(lim)
+	if err != nil {
+		panic(err)
+	}
+
+	port, err := strconv.Atoi(portString)
 	if err != nil {
 		panic(err)
 	}
@@ -36,7 +43,7 @@ func main() {
 	lg.Printf("starting service with lim %v", limInt)
 
 	server, err := net.ListenTCP("tcp", &net.TCPAddr{
-		Port: 6543,
+		Port: port,
 	})
 	if err != nil {
 		panic(err)
