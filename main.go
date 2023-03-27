@@ -16,19 +16,11 @@ var lg *log.Logger
 var lim string
 var portString string
 var threshold int32
-var nodelay string
-var fast bool
 
 func main() {
 	flag.StringVar(&lim, "lim", "200", "count of conns per 5 sec")
 	flag.StringVar(&portString, "port", "6543", "port")
-	flag.StringVar(&nodelay, "nodelay", "disable", "enables no delay")
 	flag.Parse()
-
-	fast = false
-	if nodelay == "enable" {
-		fast = true
-	}
 
 	threshold = 100
 	limInt, err := strconv.Atoi(lim)
@@ -48,7 +40,7 @@ func main() {
 	totalCounter := 0
 	lg = log.New(os.Stdout, "", log.Ltime)
 
-	lg.Printf("starting service with lim %v, port %v, nodelay %v", limInt, port, fast)
+	lg.Printf("starting service with lim %v, port %v", limInt, port)
 
 	server, err := net.ListenTCP("tcp", &net.TCPAddr{
 		Port: port,
@@ -95,7 +87,7 @@ func main() {
 		go func() {
 			lg.Printf("Incoming connection from [%s]", addr.String())
 
-			conn.SetNoDelay(fast)
+			conn.SetNoDelay(true)
 
 			allowed := true
 			syncer.Lock()
@@ -145,7 +137,7 @@ func forwardConnection(src *net.TCPConn) {
 	src.SetKeepAlive(true)
 	src.SetKeepAlivePeriod(5 * time.Second)
 
-	dst.SetNoDelay(fast)
+	dst.SetNoDelay(true)
 
 	done := make(chan struct{})
 
@@ -154,16 +146,14 @@ func forwardConnection(src *net.TCPConn) {
 	go func() {
 		defer src.Close()
 		defer dst.Close()
-		_, err := io.Copy(dst, src)
-		lg.Printf("io ended with %s", err)
+		io.Copy(dst, src)
 		done <- struct{}{}
 	}()
 
 	go func() {
 		defer src.Close()
 		defer dst.Close()
-		_, err := io.Copy(src, dst)
-		lg.Printf("io ended with %s", err)
+		io.Copy(src, dst)
 		done <- struct{}{}
 	}()
 
