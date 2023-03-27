@@ -22,7 +22,7 @@ func main() {
 	flag.StringVar(&portString, "port", "6543", "port")
 	flag.Parse()
 
-	threshold = 100
+	threshold = 500
 	limInt, err := strconv.Atoi(lim)
 	if err != nil {
 		panic(err)
@@ -40,7 +40,7 @@ func main() {
 	totalCounter := 0
 	lg = log.New(os.Stdout, "", log.Ltime)
 
-	lg.Printf("starting service with lim %v, port %v", limInt, port)
+	lg.Printf("starting service with lim %v", limInt)
 
 	server, err := net.ListenTCP("tcp", &net.TCPAddr{
 		Port: port,
@@ -86,7 +86,6 @@ func main() {
 
 		go func() {
 			lg.Printf("Incoming connection from [%s]", addr.String())
-
 			conn.SetNoDelay(true)
 
 			allowed := true
