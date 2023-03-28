@@ -147,7 +147,7 @@ func forwardConnection(src *net.TCPConn) {
 		defer dst.Close()
 		_, err := io.Copy(dst, src)
 		if err != nil {
-			lg.Printf("Transport from dst to src stopped with [%s]")
+			lg.Printf("Forward from dst to src stopped with [%s]", err)
 		}
 		done <- struct{}{}
 	}()
@@ -157,7 +157,7 @@ func forwardConnection(src *net.TCPConn) {
 		defer dst.Close()
 		_, err := io.Copy(src, dst)
 		if err != nil {
-			lg.Printf("Transport from src to dst stopped with [%s]")
+			lg.Printf("Forward from src to dst stopped with [%s]", err)
 		}
 		done <- struct{}{}
 	}()
