@@ -145,14 +145,20 @@ func forwardConnection(src *net.TCPConn) {
 	go func() {
 		defer src.Close()
 		defer dst.Close()
-		io.Copy(dst, src)
+		_, err := io.Copy(dst, src)
+		if err != nil {
+			lg.Printf("Transport from dst to src stopped with [%s]")
+		}
 		done <- struct{}{}
 	}()
 
 	go func() {
 		defer src.Close()
 		defer dst.Close()
-		io.Copy(src, dst)
+		_, err := io.Copy(src, dst)
+		if err != nil {
+			lg.Printf("Transport from src to dst stopped with [%s]")
+		}
 		done <- struct{}{}
 	}()
 
