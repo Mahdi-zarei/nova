@@ -2,13 +2,16 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"io"
 	"log"
 	"net"
 	"os"
+	"os/signal"
 	"strconv"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 )
 
@@ -21,6 +24,8 @@ var dstPort int
 var thString string
 
 func main() {
+	c := make(chan os.Signal)
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 	flag.StringVar(&lim, "lim", "200", "count of conns per 5 sec")
 	flag.StringVar(&portString, "port", "6543", "port")
 	flag.StringVar(&forwPortString, "frw", "888", "forwarding port")
@@ -55,6 +60,11 @@ func main() {
 	totMu := sync.Mutex{}
 	totalCounter := 0
 	lg = log.New(os.Stdout, "", log.Ltime)
+	go func() {
+		<-c
+		fmt.Println(blackList)
+		os.Exit(0)
+	}()
 
 	lg.Printf("starting service with lim %v", limInt)
 
