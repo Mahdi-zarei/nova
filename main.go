@@ -18,14 +18,22 @@ var portString string
 var threshold int32
 var forwPortString string
 var dstPort int
+var thString string
 
 func main() {
 	flag.StringVar(&lim, "lim", "200", "count of conns per 5 sec")
 	flag.StringVar(&portString, "port", "6543", "port")
 	flag.StringVar(&forwPortString, "frw", "888", "forwarding port")
+	flag.StringVar(&thString, "th", "100", "threshold")
 	flag.Parse()
 
-	threshold = 100
+	tmp, err := strconv.Atoi(thString)
+	if err != nil {
+		panic(err)
+	}
+
+	threshold = int32(tmp)
+
 	limInt, err := strconv.Atoi(lim)
 	if err != nil {
 		panic(err)
