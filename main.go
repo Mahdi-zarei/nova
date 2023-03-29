@@ -25,7 +25,7 @@ func main() {
 	flag.StringVar(&forwPortString, "frw", "888", "forwarding port")
 	flag.Parse()
 
-	threshold = 500
+	threshold = 100
 	limInt, err := strconv.Atoi(lim)
 	if err != nil {
 		panic(err)
