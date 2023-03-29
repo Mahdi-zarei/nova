@@ -22,6 +22,7 @@ var threshold int32
 var forwPortString string
 var dstPort int
 var thString string
+var connPoolSize string
 
 func main() {
 	c := make(chan os.Signal)
@@ -30,6 +31,7 @@ func main() {
 	flag.StringVar(&portString, "port", "6543", "port")
 	flag.StringVar(&forwPortString, "frw", "888", "forwarding port")
 	flag.StringVar(&thString, "th", "100", "threshold")
+	flag.StringVar(&connPoolSize, "pool", "100", "pool size")
 	flag.Parse()
 
 	tmp, err := strconv.Atoi(thString)
@@ -38,6 +40,11 @@ func main() {
 	}
 
 	threshold = int32(tmp)
+
+	poolSize, err := strconv.Atoi(connPoolSize)
+	if err != nil {
+		panic(err)
+	}
 
 	limInt, err := strconv.Atoi(lim)
 	if err != nil {
@@ -58,8 +65,20 @@ func main() {
 	blackList := map[string]struct{}{}
 	syncer := sync.Mutex{}
 	totMu := sync.Mutex{}
+	var pool []*net.TCPConn
+	poolSyncer := sync.Mutex{}
 	totalCounter := 0
 	lg = log.New(os.Stdout, "", log.Ltime)
+
+	for i := 0; i < poolSize; i++ {
+		cn, err := net.DialTCP("tcp", nil, &net.TCPAddr{Port: dstPort})
+		if err != nil {
+			panic(err)
+		}
+
+		pool = append(pool, cn)
+	}
+
 	go func() {
 		<-c
 		fmt.Println(blackList)
@@ -136,29 +155,43 @@ func main() {
 			syncer.Unlock()
 
 			if allowed {
-				totMu.Lock()
-				totalCounter++
-				lg.Printf("total connection count: [%v]", totalCounter)
-				totMu.Unlock()
 
-				forwardConnection(conn)
+				can := true
+				dst := &net.TCPConn{}
+				poolSyncer.Lock()
+				if len(pool) == 0 {
+					lg.Printf("pool is fool!")
+					can = false
+				} else {
+					dst = pool[0]
+					pool = pool[1:]
+				}
+				poolSyncer.Unlock()
+				if can {
+					totMu.Lock()
+					totalCounter++
+					lg.Printf("total connection count: [%v]", totalCounter)
+					totMu.Unlock()
 
-				lg.Printf("closing connection for [%s]", ip)
-				totMu.Lock()
-				totalCounter--
-				totMu.Unlock()
+					forwardConnection(conn, dst)
+
+					poolSyncer.Lock()
+					pool = append(pool, dst)
+					poolSyncer.Unlock()
+
+					lg.Printf("closing connection for [%s]", ip)
+					totMu.Lock()
+					totalCounter--
+					totMu.Unlock()
+				}
+
 			}
 			conn.Close()
 		}()
 	}
 }
 
-func forwardConnection(src *net.TCPConn) {
-	dst, err := net.DialTCP("tcp", nil, &net.TCPAddr{Port: dstPort})
-	if err != nil {
-		return
-	}
-
+func forwardConnection(src *net.TCPConn, dst *net.TCPConn) {
 	src.SetKeepAlive(true)
 	src.SetKeepAlivePeriod(5 * time.Second)
 
@@ -170,7 +203,6 @@ func forwardConnection(src *net.TCPConn) {
 
 	go func() {
 		defer src.Close()
-		defer dst.Close()
 		_, err := io.Copy(dst, src)
 		if err != nil {
 			lg.Printf("Forward from dst to src stopped with [%s]", err)
@@ -180,7 +212,6 @@ func forwardConnection(src *net.TCPConn) {
 
 	go func() {
 		defer src.Close()
-		defer dst.Close()
 		_, err := io.Copy(src, dst)
 		if err != nil {
 			lg.Printf("Forward from src to dst stopped with [%s]", err)
