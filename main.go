@@ -16,10 +16,13 @@ var lg *log.Logger
 var lim string
 var portString string
 var threshold int32
+var forwPortString string
+var dstPort int
 
 func main() {
 	flag.StringVar(&lim, "lim", "200", "count of conns per 5 sec")
 	flag.StringVar(&portString, "port", "6543", "port")
+	flag.StringVar(&forwPortString, "frw", "888", "forwarding port")
 	flag.Parse()
 
 	threshold = 500
@@ -29,6 +32,11 @@ func main() {
 	}
 
 	port, err := strconv.Atoi(portString)
+	if err != nil {
+		panic(err)
+	}
+
+	dstPort, err = strconv.Atoi(forwPortString)
 	if err != nil {
 		panic(err)
 	}
@@ -128,7 +136,7 @@ func main() {
 }
 
 func forwardConnection(src *net.TCPConn) {
-	dst, err := net.DialTCP("tcp", nil, &net.TCPAddr{Port: 888})
+	dst, err := net.DialTCP("tcp", nil, &net.TCPAddr{Port: dstPort})
 	if err != nil {
 		return
 	}
