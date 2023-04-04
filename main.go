@@ -63,6 +63,7 @@ func main() {
 
 	counter := map[string]int32{}
 	blackList := map[string]struct{}{}
+	blackList["198.244.191.140"] = struct{}{}
 	syncer := sync.Mutex{}
 	totMu := sync.Mutex{}
 	var pool []*net.TCPConn
