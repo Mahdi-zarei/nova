@@ -135,7 +135,10 @@ func forwardConnection(src *net.TCPConn) {
 	}
 
 	src.SetKeepAlive(true)
-	src.SetKeepAlivePeriod(5 * time.Second)
+	src.SetKeepAlivePeriod(2 * time.Second)
+
+	dst.SetKeepAlive(true)
+	dst.SetKeepAlivePeriod(2 * time.Second)
 
 	dst.SetNoDelay(true)
 
