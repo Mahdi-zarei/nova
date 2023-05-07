@@ -25,7 +25,7 @@ var totalCount atomic.Int32
 
 func main() {
 	destIP = "127.0.0.1"
-	destPort = 1194
+	destPort = 443
 	logger = log.New(os.Stdout, "", log.LstdFlags)
 	bufferSize = 512 * 1024
 	connCount = 4
