@@ -36,7 +36,7 @@ func main() {
 		ender = append(ender, []byte(x)...)
 	}
 
-	srv, err := net.ListenTCP("tcp", &net.TCPAddr{Port: 1196})
+	srv, err := net.ListenTCP("tcp", &net.TCPAddr{Port: 8080})
 	if err != nil {
 		panic(err)
 	}
