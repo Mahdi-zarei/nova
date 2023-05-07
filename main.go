@@ -24,8 +24,8 @@ var bufferSize int
 var totalCount atomic.Int32
 
 func main() {
-	destIP = "188.121.115.36"
-	destPort = 6543
+	destIP = "127.0.0.1"
+	destPort = 1194
 	logger = log.New(os.Stdout, "", log.LstdFlags)
 	bufferSize = 512 * 1024
 	connCount = 4
@@ -36,7 +36,7 @@ func main() {
 		ender = append(ender, []byte(x)...)
 	}
 
-	srv, err := net.ListenTCP("tcp", &net.TCPAddr{Port: 5555})
+	srv, err := net.ListenTCP("tcp", &net.TCPAddr{Port: 1196})
 	if err != nil {
 		panic(err)
 	}
