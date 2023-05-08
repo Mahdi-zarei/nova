@@ -135,12 +135,18 @@ func handleManyToOneForward(dest *net.TCPConn, conns map[int]*net.TCPConn) {
 func handleOneToManyForward(src *net.TCPConn, conns map[int]*net.TCPConn) {
 	buffer := make([]byte, connCount*bufferSize)
 	cnt := 0
+	last := time.Now()
 	for {
 		nr, err := src.Read(buffer)
 
 		if nr > 0 {
 
-			buffer, nr = appendToBuffer(buffer, nr)
+			flag := false
+			if time.Now().Sub(last) >= time.Second {
+				buffer, nr = appendToBuffer(buffer, nr)
+				last = time.Now()
+				flag = true
+			}
 
 			logger.Println("write ", cnt)
 			_, err2 := conns[cnt].Write(buffer[:nr])
@@ -149,8 +155,10 @@ func handleOneToManyForward(src *net.TCPConn, conns map[int]*net.TCPConn) {
 				return
 			}
 
-			cnt++
-			cnt %= connCount
+			if flag {
+				cnt++
+				cnt %= connCount
+			}
 
 		}
 
