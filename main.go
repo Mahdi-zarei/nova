@@ -24,7 +24,7 @@ var bufferSize int
 var totalCount atomic.Int32
 
 func main() {
-	destIP = "127.0.1.1"
+	destIP = "198.244.191.140"
 	destPort = 1194
 	logger = log.New(os.Stdout, "", log.LstdFlags)
 	bufferSize = 512 * 1024
