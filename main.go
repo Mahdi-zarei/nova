@@ -42,6 +42,7 @@ func main() {
 		ender = append(ender, []byte(x)...)
 	}
 
+	logger.Printf("starting with connection count %v linger %v buffer size %v", connCount, lingerTime, bufferSize)
 	srv, err := net.ListenTCP("tcp", &net.TCPAddr{Port: 1195})
 	if err != nil {
 		panic(err)
