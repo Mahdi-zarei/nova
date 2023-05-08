@@ -110,7 +110,6 @@ func handleManyToOneForward(dest *net.TCPConn, conns map[int]*net.TCPConn) {
 		nr, err := conns[cnt].Read(buffer)
 		if nr > 0 {
 
-			logger.Printf("read on %v [%s]", cnt, string(buffer[:nr]))
 			if isComplete(buffer, nr) {
 				nr = nr - 4
 				cnt++
@@ -185,6 +184,7 @@ func getIdentifier(conn *net.TCPConn) (string, int, error) {
 		nr, err := conn.Read(buffer)
 		fullRead += nr
 		if nr > 0 {
+			logger.Printf("read [%s]", string(buffer[:nr]))
 			if isComplete(buffer, nr) {
 				data += convertToString(buffer, nr-4)
 				spl := strings.Split(data, "#")
