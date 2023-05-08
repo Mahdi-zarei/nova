@@ -30,9 +30,9 @@ func main() {
 	destPort = 1194
 	logger = log.New(os.Stdout, "", log.LstdFlags)
 
-	bufferSize = *flag.Int("buffer", 512, "buffer size in kb")
-	connCount = *flag.Int("cnt", 4, "connection count")
-	lingerTime = *flag.Int("linger", 300, "connection linger time in ms")
+	flag.IntVar(&bufferSize, "buffer", 512, "buffer size in kb")
+	flag.IntVar(&connCount, "cnt", 4, "connection count")
+	flag.IntVar(&lingerTime, "linger", 300, "connection linger time in ms")
 
 	bufferSize = bufferSize * 1024
 	linker = make(map[string]map[int]*net.TCPConn)
