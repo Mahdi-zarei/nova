@@ -104,7 +104,7 @@ func handleConnections(uid string, conns map[int]*net.TCPConn) {
 }
 
 func handleManyToOneForward(dest *net.TCPConn, conns map[int]*net.TCPConn) {
-	buffer := make([]byte, bufferSize)
+	buffer := make([]byte, connCount*bufferSize)
 	cnt := 0
 	for {
 		nr, err := conns[cnt].Read(buffer)
