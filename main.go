@@ -110,6 +110,7 @@ func handleManyToOneForward(dest *net.TCPConn, conns map[int]*net.TCPConn) {
 		nr, err := conns[cnt].Read(buffer)
 		if nr > 0 {
 
+			logger.Printf("read on %v [%s]", cnt, string(buffer[:nr]))
 			if isComplete(buffer, nr) {
 				nr = nr - 4
 				cnt++
